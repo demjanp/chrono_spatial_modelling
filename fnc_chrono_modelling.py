@@ -4,6 +4,9 @@ from fnc_common import (get_unique_2d)
 
 def get_phase_intervals(intervals, phases_spatial):
 	# assign time intervals to phases by finding the highest lower and the lowest upper boundary of all intervals within each phase
+	# inputs:
+	#	intervals = [[BP_from, BP_to], ...]
+	#	phases_spatial[pi] = [[i, ...], ...]; chrono-spatial phases; where pi = index of phase and i = index in intervals
 	# returns a list: phase_intervals[pi] = [BP_from, BP_to]
 	
 	intervals = np.array(intervals, dtype = np.uint16)
@@ -18,8 +21,15 @@ def get_phase_intervals(intervals, phases_spatial):
 	return phase_intervals, pis_sorted
 
 def get_chains(phase_intervals, distribution, t_transition):
-	# distribution = "uniform" / "trapezoid" / "sigmoid"
-	# t_transition = length of the transition periods at the beginning and end of the distribution (only valid for trapezoid and sigmoid distributions)
+	# generate Markov Chains for chronometric modelling
+	'''
+		Assign absolute dates to the modelled chrono-spatial phases under the assumption of a phase-sequence model, as described by 
+		Bronk Ramsey, C. (2009). Bayesian analysis of radiocarbon dates. Radiocarbon, 51(1): 337-360.
+		The original likelihoods for each phase are the dating intervals represented as uniform, trapezoid or sigmoid probability distributions.
+	'''
+	# inputs:
+	#	distribution = "uniform" / "trapezoid" / "sigmoid"
+	#	t_transition = length of the transition periods at the beginning and end of the distribution (only valid for trapezoid and sigmoid distributions)
 	# returns a list: chains = [chain, ...]; where chain[qi] = t; where qi = index in pis and t = time in calendar years BP
 	
 	def get_dist_lookup(phase_intervals, t_transition):
@@ -151,9 +161,13 @@ def get_chains(phase_intervals, distribution, t_transition):
 
 def get_time_phase_distribution(chains, pis, phase_intervals):
 	# converts Markov chains into distributions of absolute dating of phases
+	# inputs:
+	#	chains = [chain, ...]; where chain[qi] = t; where qi = index in pis and t = time in calendar years BP
+	#	pis = [pi, ...]; where pi = index of phase; ordered by earliest interval first
+	#	phase_intervals[qi] = [BP_from, BP_to]; where qi = index in pis
 	# returns two numpy arrays: time_phase_dist, ts
-	# time_phase_dist[ti, pi] = n; where ti = index in ts, pi = index of phase and n = number of incidences where phase pi dates to time ti
-	# ts = [t, ...]; where t = absolute dating in years BP
+	#	time_phase_dist[ti, pi] = n; where ti = index in ts, pi = index of phase and n = number of incidences where phase pi dates to time ti
+	#	ts = [t, ...]; where t = absolute dating in years BP
 	
 	ts = np.arange(chains.min(), chains.max() + 1) # [t, ...]; where t = absolute dating in years BP
 	time_phase_dist = np.zeros((ts.shape[0], pis.shape[0]), dtype = int) # [ti, pi] = n; where ti = index in ts, pi = index of phase and n = number of incidences where phase pi dates to time ti
@@ -163,7 +177,9 @@ def get_time_phase_distribution(chains, pis, phase_intervals):
 	return time_phase_dist, ts
 
 def get_phase_datings(phase_intervals):
-	# calculate absolute dating ranges for phases
+	# calculate absolute dating ranges for chrono-spatial phases (used of sorting of the phases)
+	# inputs:
+	#	phase_intervals[qi] = [BP_from, BP_to]; where qi = index in pis
 	# returns a numpy array: phase_datings[qi] = [BP_from, BP_to]; where qi = index in pis 
 	
 	phase_intervals_unique = get_unique_2d(phase_intervals)

@@ -7,12 +7,12 @@ TODO
 Peter Demján (peter.demjan@gmail.com)
 
 ## Overview
-This is an example implementation of chrono-spatial modelling of settlement activities used in the aforementioned paper. The purpose is to provide a functional overview of the used methods, which is possible to execute and run without access to supercomputing facitities. Sample data is provided, which represents a subset of the actual data used in the original study. As of 2018, the processing should take under 24 hours on a reasonably powerful personal computer.
+This is an example implementation of chrono-spatial modelling of settlement activities used in the aforementioned paper. The purpose is to provide a functional overview of the used methods, which is possible to execute and run without access to supercomputing facitities. Sample data is provided, which represents a subset of the actual data used in the original study. As of 2018, the processing should take under 48 hours on a reasonably powerful personal computer.
 
 The processing includes the following steps:
 1. Load input data and generate a descriptive system
 2. Generate a set of solutions of chrono-spatial phasing of the evidence using MCMC
-3. Assign absolute dating to the modelled chrono-spatial phases in form of probability distributions generated using MCMC
+3. Assign absolute dating to the modelled chrono-spatial phases in form of posterior probability distributions generated using MCMC analysis
 4. Calculate temporal distribution of amount of modelled habitation areas
 5. Calculate temporal distribution of summed evidence
 6. Calculate temporal distribution of the Habitation Stability Index (HSI)
@@ -37,7 +37,6 @@ Input data are loaded from the directory [data](data) and have the form of CSV f
 
 Results are plotted in from of graphs and maps in the directory [output](output).
 Pre-computed example results are available in the directory [example_output](example_output).
-
 
 ## Dependencies
 

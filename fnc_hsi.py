@@ -1,10 +1,15 @@
 import numpy as np
 
 def calculate_HSI(solutions, coords, eu_side, time_phase_dist):
-	# calculate Habitation Stability Index (TODO: explain what it is)
+	# calculate Habitation Stability Index, which is the ratio of habitation area units which are close to units inhabited in the previous phase
+	# inputs:
+	#	solutions[si, i, pi] = True/False; where si = index of solution, i = index in coords and pi = index of phase
+	#	coords = [[X, Y], ...]; unique coordinates of evidence units
+	#	eu_side = evidence unit square side (m)
+	#	time_phase_dist[ti, pi] = n; where ti = index in ts, pi = index of phase and n = number of incidences where phase pi dates to time ti
 	# returns two numpy arrays: hsi_mean, hsi_mean_map
-	# hsi_mean_map[pi, i] = mean HSI; where pi = index of phase and i = index in coords
-	# hsi_mean[ti] = mean HSI; where ti = index in ts
+	#	hsi_mean_map[pi, i] = mean HSI; where pi = index of phase and i = index in coords
+	#	hsi_mean[ti] = mean HSI; where ti = index in ts
 	
 	ts_n = time_phase_dist.shape[0]
 	phases_n = time_phase_dist.shape[1]

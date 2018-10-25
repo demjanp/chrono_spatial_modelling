@@ -2,6 +2,9 @@ import numpy as np
 from osgeo import gdal, gdalnumeric
 
 def load_input_data(path):
+	# load evidence from a CSV file
+	# inputs:
+	#	path = path in string format to a CSV file containing the evidence (input data)
 	# returns a numpy array: [[BP_from, BP_to, X, Y], ...]
 	
 	data = []
@@ -16,6 +19,9 @@ def load_input_data(path):
 	return data
 
 def load_examined_coords(path):
+	# load all examined coordinates from a CSV file
+	# inputs:
+	#	path = path to file in string format
 	# returns a numpy array: [[X, Y], ...]
 	
 	coords_examined = []
@@ -29,6 +35,7 @@ def load_examined_coords(path):
 	return np.array(coords_examined, dtype = int)
 
 class GeoTIFF(object):
+	# handle operations with a GeoTIFF file (https://www.gdal.org/frmt_gtiff.html)
 	
 	def __init__(self, fsource):
 		

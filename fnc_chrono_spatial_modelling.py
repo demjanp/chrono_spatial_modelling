@@ -3,7 +3,10 @@ import itertools
 from collections import defaultdict
 
 def find_clusters(idxs, neighbours_phase):
-	# find clusters of neighbouring coords in idxs (idxs = indices in coords)
+	# find clusters of neighbouring coordinates in idxs
+	# inputs:
+	#	idxs = [i, ...]; where i = index in coords
+	#	neighbours_phase = {i1: [i2, ...], ...}; where i1, i2 are indices in coords
 	# returns a list: [[i, ...], ...]; where i = index in coords
 	
 	if isinstance(neighbours_phase, list):
@@ -31,6 +34,13 @@ def find_clusters(idxs, neighbours_phase):
 	return clusters
 
 def find_solution(params):
+	# find a solution for assigning evidence units to chrono-spatial phases while modeling production areas around habitation areas
+	# inputs: params = [phases_n, coords_phases, neighbours_phases, exclude_phases, max_attempts]
+	#	phases_n = number of phases
+	#	coords_phases[i] = [phases, ...]; where i = index in coords and phases = [pi, ...]; pi = index of phase
+	#	neighbours_phases = {pi: {i1: [i2, ...], ...}, ...}; where pi = index of phase and i1, i2 are indices in coords
+	#	exclude_phases[pi] = [[i1, i2], ...]; where pi = index of phase and i1, i2 are indices in coords
+	#	max_attempts = number of attempts after which to add a phase if no solution has been found
 	# returns a list: solution[i, pi] = True/False; where i = index in coords and pi = index of phase
 	
 	phases_n, coords_phases, neighbours_phases, exclude_phases, max_attempts = params
@@ -107,12 +117,27 @@ def find_solution(params):
 	return solution, len(unassigned)			
 
 def find_solutions(intervals, phases_chrono, intervals_coords, neighbours, exclude, add_phase_after, proc_n, pool):
+	# Generate a set of solutions of chrono-spatial phasing of the evidence using MCMC
+	# inputs:
+	#	intervals = [[BP_from, BP_to], ...]
+	#	phases_chrono[pi] = [[i, ...], ...]; chronological phases; where pi = index of phase and i = index in intervals
+	#	intervals_coords[i] = [[BP_from, BP_to], ...]; where i = index in coords
+	#	neighbours[i1] = [i2, ...]; where i1, i2 are indices in coords
+	#	exclude = [[i1, i2], ...]; where i1, i2 are indices in coords
+	#	add_phase_after = number of attempts after which to add a phase if no solution has been found
+	#	proc_n = number of processors to use for multiprocessing
+	#	pool = pool of worker processes; instance of the mp.Pool class
 	# returns two lists: solutions and chrono-spatial phases
-	# solutions[si, i, pi] = True/False; where si = index of solution, i = index in coords and pi = index of phase
-	# phases[pi] = [[i, ...], ...]; where pi = index of phase and i = index in intervals
+	#	solutions[si, i, pi] = True/False; where si = index of solution, i = index in coords and pi = index of phase
+	#	phases[pi] = [[i, ...], ...]; where pi = index of phase and i = index in intervals
 	
 	def get_coords_phases(coords_idxs, intervals_coords, intervals, phases):
-		# for each coord, find which phases it can belong to
+		# for each evidence unit represented by coordinates, find which phases it can belong to
+		# inputs:
+		#	coords_idxs = [i, ...]; where i = index in coords
+		#	intervals_coords[i] = [[BP_from, BP_to], ...]; where i = index in coords
+		#	intervals = [[BP_from, BP_to], ...]
+		#	phases[pi] = [[i, ...], ...]; where pi = index of phase and i = index in intervals
 		# returns two lists: coords_phases and coords_phases_all
 		# coords_phases[i] = [phases, ...]; where i = index in coords and phases = [pi, ...]; pi = index of phase
 		#									one phase of each list of phases per coordinate has to be assigned to the evidence unit
@@ -137,6 +162,11 @@ def find_solutions(intervals, phases_chrono, intervals_coords, neighbours, exclu
 		return coords_phases, coords_phases_all
 	
 	def get_exclude_phases(phases, exclude, coords_phases_all):
+		# get mutually excluding units relevant for each phase
+		# inputs:
+		#	phases[pi] = [[i, ...], ...]; where pi = index of phase and i = index in intervals
+		#	exclude = [[i1, i2], ...]; where i1, i2 are indices in coords
+		#	coords_phases_all = [pi, ...]; where pi = index of phase
 		# returns a list: exclude_phases[pi] = [[i1, i2], ...]; where pi = index of phase and i1, i2 are indices in coords
 		
 		exclude_phases = []
@@ -150,6 +180,11 @@ def find_solutions(intervals, phases_chrono, intervals_coords, neighbours, exclu
 		return exclude_phases
 	
 	def get_neighbours_phases(phases, neighbours, coords_phases_all):
+		# get neighbouring units relevant for each phase
+		# inputs:
+		#	phases[pi] = [[i, ...], ...]; where pi = index of phase and i = index in intervals
+		#	neighbours[i1] = [i2, ...]; where i1, i2 are indices in coords
+		#	coords_phases_all = [pi, ...]; where pi = index of phase
 		# returns a dictionary: neighbours_phases = {pi: {i1: [i2, ...], ...}, ...}; where pi = index of phase and i1, i2 are indices in coords
 
 		neighbours_phases = defaultdict(lambda: defaultdict(list))
@@ -163,6 +198,12 @@ def find_solutions(intervals, phases_chrono, intervals_coords, neighbours, exclu
 		return dict(neighbours_phases)
 	
 	def check_solutions_convergence(solutions, intervals_coords, intervals, phases):
+		# check set of solutions for convergence by computing phase_ratio
+		# inputs:
+		#	solutions[si, i, pi] = True/False; where si = index of solution, i = index in coords and pi = index of phase
+		#	intervals_coords[i] = [[BP_from, BP_to], ...]; where i = index in coords
+		#	intervals = [[BP_from, BP_to], ...]
+		#	phases[pi] = [[i, ...], ...]; where pi = index of phase and i = index in intervals
 		# returns mean phase_ratio
 		# where phase_ratio = (number of unique phases assigned to evidence unit at a coordinate in all solutions) / (number of phases possible to assign to evidence unit at a coordinate)
 		

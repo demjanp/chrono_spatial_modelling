@@ -1,7 +1,10 @@
 import numpy as np
 
 def get_dating_intervals(data):
-	# returns a list of unique dating intervals: [[BP_from, BP_to], ...]
+	# extract unique dating intervals from source data
+	# inputs:
+	#	data = [[BP_from, BP_to, X, Y], ...]; where BP_from, BP_to = dating interval in calendar years BP; X, Y = coordinates of evidence unit
+	# returns a list: intervals = [[BP_from, BP_to], ...]
 	
 	intervals = []
 	for BP_from, BP_to, _, _ in data:
@@ -11,9 +14,12 @@ def get_dating_intervals(data):
 
 def get_chronological_phases(intervals, interval_thresh):
 	# get chronological phases (groups of intervals which can be contemporary)
+	# inputs:
+	#	intervals = [[BP_from, BP_to], ...]
+	#	interval_thresh = threshold for a time interval lenght under which this interval is considered contemporary with another if it overlaps with it by any length
 	# returns two lists: phases, contemporary
-	# phases[pi] = [[i, ...], ...]; where pi = index of phase and i = index in intervals
-	# contemporary[i1] = [i2, ...]; where i1, i2 are indices in intervals
+	#	phases[pi] = [[i, ...], ...]; where pi = index of phase and i = index in intervals
+	#	contemporary[i1] = [i2, ...]; where i1, i2 are indices in intervals
 	
 	# for each interval, find all other intervals that can be contemporary
 	contemporary = []
@@ -66,7 +72,10 @@ def get_chronological_phases(intervals, interval_thresh):
 	return phases, contemporary
 
 def get_intervals_per_coords(data, coords):
-	# get dating intervals for each coordinate
+	# get dating intervals for each evidence unit represented by its coordinates
+	# inputs:
+	#	data = [[BP_from, BP_to, X, Y], ...]; where BP_from, BP_to = dating interval in calendar years BP; X, Y = coordinates of evidence unit
+	#	coords = [[X, Y], ...]; unique coordinates of evidence units
 	# returns a list: intervals_coords[i] = [[BP_from, BP_to], ...]; where i = index in coords
 	
 	intervals_coords = []

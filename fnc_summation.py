@@ -3,6 +3,10 @@ import numpy as np
 from fnc_chrono_spatial_modelling import (find_clusters)
 
 def sum_habitation_phases(solutions, neighbours):
+	# calculate temporal distribution of amount of modelled habitation areas, summed by modelled chrono-spatial phases
+	# inputs:
+	#	solutions[si, i, pi] = True/False; where si = index of solution, i = index in coords and pi = index of phase
+	#	neighbours[i1] = [i2, ...]; where i1, i2 are indices in coords
 	# returns a list: num_habitation_areas[pi, si] = amount
 	
 	solutions_n = solutions.shape[0]
@@ -25,8 +29,10 @@ def sum_habitation_phases(solutions, neighbours):
 	return num_habitation_areas
 
 def mean_habitation_time(num_habit, time_phase_dist):
-	# num_habit[pi, si] = amount
-	# time_phase_dist[ti, pi] = n; where ti = index in ts, pi = index of phase and n = number of incidences where phase pi dates to time ti
+	# calculate temporal distribution of amount of modelled habitation areas, summed by calendar years
+	# inputs:
+	#	num_habit[pi, si] = amount
+	#	time_phase_dist[ti, pi] = n; where ti = index in ts, pi = index of phase and n = number of incidences where phase pi dates to time ti
 	# return num_habitation_t[ti] = mean amount
 	
 	# get distribution of values in phases
@@ -56,8 +62,12 @@ def mean_habitation_time(num_habit, time_phase_dist):
 	return num_habitation_t
 
 def sum_evidence(data):
-	
-	# sum amount of evidence per calendar year
+	# calculate temporal distribution of evidence, summed by calendar years
+	# inputs:
+	#	data = [[BP_from, BP_to, X, Y], ...]; where BP_from, BP_to = dating interval in calendar years BP; X, Y = coordinates of evidence unit
+	# returns two numpy arrays: ts_evid, num_evidence
+	#	ts_evid = [t, ...]; where t = absolute dating in years BP
+	#	num_evidence[ti] = amount; where ti = index in ts_evid
 	data = data[:,:2] # [[BP_from, BP_to], ...]
 	ts_evid = np.arange(data.min(), data.max())
 	interval_lengths = data[:,0] - data[:,1]

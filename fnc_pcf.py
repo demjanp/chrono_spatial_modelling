@@ -4,7 +4,7 @@ from fnc_data import (load_examined_coords)
 from fnc_common import (get_unique_2d)
 
 def calculate_PCF(coords, r_max, eu_side):
-	# returns a numpy array: pcf = [[r, g], ...]; where r = radius of the annulus used to compute g(r), g = average correlation function g(r) based on all solutions
+	# calculate Pair Correlation Function (PCF) for evidence units represented by their coordinates
 	'''
 		Compute the two-dimensional pair correlation function, also known
 		as the radial distribution function, for a set of circular particles
@@ -14,8 +14,13 @@ def calculate_PCF(coords, r_max, eu_side):
 		compensate for edge effects.  If no such particles exist, an error is
 		returned
 		
-		Modified after Craig Finch (www.shocksolution.com)
+		Modified after Craig Finch (https://github.com/cfinch/Shocksolution_Examples/tree/master/PairCorrelation)
 	'''
+	# inputs:
+	#	coords = [[X, Y], ...]; unique coordinates of evidence units
+	#	r_max = maximum radius to calculate for
+	#	eu_side = evidence unit square side (m)
+	# returns a numpy array: pcf = [[r, g], ...]; where r = radius of the annulus used to compute g(r), g = average correlation function g(r) based on all solutions
 	
 	Sx = coords[:,0].max() - coords[:,0].min()
 	Sy = coords[:,1].max() - coords[:,1].min()
@@ -69,18 +74,15 @@ def calculate_PCF(coords, r_max, eu_side):
 	return np.vstack((radii, g_average)).T
 
 def calculate_PCF_solutions(solutions, coords, eu_side):
+	# calculate PCF for the whole set of solutions
+	# inputs:
+	#	solutions[si, i, pi] = True/False; where si = index of solution, i = index in coords and pi = index of phase
+	#	coords = [[X, Y], ...]; unique coordinates of evidence units
+	#	eu_side = evidence unit square side (m)
 	# returns a numpy array: pcf[pi] = [r, g]; where pi = index of phase, r = radius of the annulus used to compute g(r), g = average correlation function g(r)
 	
 	'''
-		Compute the two-dimensional pair correlation function, also known
-		as the radial distribution function, for a set of circular particles
-		contained in a square region of a plane.  This simple function finds
-		reference particles such that a circle of radius r_max drawn around the
-		particle will fit entirely within the square, eliminating the need to
-		compensate for edge effects.  If no such particles exist, an error is
-		returned
-		
-		Modified after Craig Finch (www.shocksolution.com)
+		Modified after Craig Finch (https://github.com/cfinch/Shocksolution_Examples/tree/master/PairCorrelation)
 	'''
 	
 	def calculate_PCF_phase(solutions, pi, coords, Sx, Sy, r_max, eu_side):
@@ -160,11 +162,18 @@ def calculate_PCF_solutions(solutions, coords, eu_side):
 	return pcf
 	
 def calculate_PCF_randomized(solutions, path_coords_examined, extent, eu_side, randomize_n):
+	# calculate PCF for a randomized set of solutions, generated based on the actual solutions
+	# inputs:
+	#	solutions[si, i, pi] = True/False; where si = index of solution, i = index in coords and pi = index of phase
+	#	path_coords_examined = path in string format to a CSV file containing all examined coordinates
+	#	extent
+	#	eu_side = evidence unit square side (m)
+	#	randomize_n = number of randomized solutions to generate when calculating the PCF
 	# returns a list: pcf_randomized
-	# pcf_randomized[pi] = [[radii, g_lower, g_upper], ...]; where pi = index of phase; radii = [r, ...] and g_lower, g_upper = [g, ...]; in order of radii
-	# g = correlation function g(r)
-	# r = radius of the annulus used to compute g(r)
-	# g_lower, g_upper = 5th and 95th percentiles of randomly generated values of g for phase pi
+	#	pcf_randomized[pi] = [[radii, g_lower, g_upper], ...]; where pi = index of phase; radii = [r, ...] and g_lower, g_upper = [g, ...]; in order of radii
+	#		g = correlation function g(r)
+	#		r = radius of the annulus used to compute g(r)
+	#		g_lower, g_upper = 5th and 95th percentiles of randomly generated values of g for phase pi
 	
 	solutions_n = solutions.shape[0]
 	coords_n = solutions.shape[1]

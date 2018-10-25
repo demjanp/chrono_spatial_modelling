@@ -3,9 +3,16 @@ import numpy as np
 from fnc_common import (get_unique_2d)
 
 def get_cost(grid_slope, grid_water, water_limit):
-	# return grid of surface cost
-	# grid_vert: dem normalized to raster units
-	# water_limit: limit of water flow which is easily passable
+	# calculate cost surface raster
+	'''
+		Cost function is calculated according to Bevan, A., Lake, M. (2013) Computational Approaches to Archaeological Spaces; chapter: Slope-Dependend Cost Functions
+	'''
+	# inputs:
+	#	grid_slope[i, j] = slope; where i, j are coordinates on raster
+	#	grid_water[i, j] = water flow normalized to hectares; where i, j are coordinates on raster
+	#	water_limit = limit of water flow which is easily passable
+	# returns a numpy array: grid_cost
+	#	grid_cost[i, j] = surface cost; where i, j are coordinates on raster
 	
 	grid_water_c = grid_water.copy()
 	
@@ -34,7 +41,6 @@ def get_cost(grid_slope, grid_water, water_limit):
 					grid_water_c[pnt3[0], pnt3[1]] = w
 					grid_water_c[pnt4[0], pnt4[1]] = w
 	
-	# calculate cost after Computational Approaches to Archaeological Spaces, edited by Andrew Bevan, Mark Lake - chapter: Slope-Dependend Cost Functions
 	grid_cost = grid_slope.copy()
 	grid_cost[grid_cost < 0] = 0
 	grid_cost[np.isnan(grid_cost)] = 0
@@ -47,12 +53,14 @@ def get_cost(grid_slope, grid_water, water_limit):
 	return grid_cost	
 
 def get_accu_cost(seeds, grid_cost, grid_vert, limits = None):
-	# seeds: [[i, j], ...]; indexes in grid_cost & grid_vert
-	# grid_cost, grid_vert: [i,j] = value; cost surface & dem normalized to raster units
-	# limits: [l, ...]; l = return state after reaching l of generated cells for each l in list
-	#
-	# return matrix [i,j] = cumulative cost distance (or np.nan if not computed)
-	# if limits is set, return list of matrices in order of limits
+	# calculate accumulative cost surface raster
+	# inputs:
+	#	seeds = [[i, j], ...]; where i, j = indexes in grid_cost & grid_vert
+	#	grid_cost[i, j] = cost
+	#	grid_vert[i, j] = elevation normalized to raster units; where i, j are coordinates on raster
+	#	limits = [l, ...]; l = return state after reaching l of generated cells for each l in list
+	# returns a numpy array: accu_cost[i,j] = cumulative cost distance (or np.nan if not computed)
+	#	if limits is set, return list of matrices in order of limits
 	
 	coords_o = np.array([[-1,-1],[-1,0],[-1,1],[0,1],[1,1],[1,0],[1,-1],[0,-1]])
 	dist_o = np.ones(coords_o.shape[0])
@@ -129,6 +137,13 @@ def get_accu_cost(seeds, grid_cost, grid_vert, limits = None):
 		return res
 
 def get_production_areas(coords, dem, cost_surface, vertical_component, production_area):
+	# generate production areas around evidence units represented by coordinates based on cost surface
+	# inputs:
+	#	coords = [[X, Y], ...]; unique coordinates of evidence units
+	#	dem[x, y] = elevation a.s.l.; where x, y = coordinates on raster
+	#	cost_surface[x, y] = cost; where x, y = coordinates on raster
+	#	vertical_component[x, y] = elevation normalized to raster units; where x, y = coordinates on raster
+	#	production_area
 	# returns a list: production_areas[k] = [[i, j], ...]; where k = index in coords; i, j = indices in cost_surface raster
 	
 	limit = int(round(production_area * (100 / dem.getCellSize()[0])**2)) # max. number of raster cells per production area
@@ -151,7 +166,9 @@ def get_production_areas(coords, dem, cost_surface, vertical_component, producti
 	
 def find_excluding_pairs(production_areas):
 	# find pairs of coordinates where their production areas spatially exclude each other
-	# returns numpy array: [[i1, i2], ...]; where i1, i2 are indices in coords
+	# inputs:
+	#	production_areas[k] = [[i, j], ...]; where k = index in coords; i, j = indices in cost_surface raster
+	# returns numpy array: exclude = [[i1, i2], ...]; where i1, i2 are indices in coords
 	
 	coords_len = len(production_areas)
 	
@@ -176,7 +193,11 @@ def find_excluding_pairs(production_areas):
 	return np.array(exclude, dtype = int)
 
 def find_neighbours(coords, exclude, eu_side):
-	# find neighbouring coordinates for each coordinate
+	# find neighbouring units for each evidence unit represented by its coordinates
+	# inputs:
+	#	coords = [[X, Y], ...]; unique coordinates of evidence units
+	#	exclude = [[i1, i2], ...]; where i1, i2 are indices in coords
+	#	eu_side = evidence unit square side (m)
 	# returns a list: neighbours[i1] = [i2, ...]; where i1, i2 are indices in coords
 	
 	neighbours = []

@@ -3,9 +3,16 @@ from scipy.spatial.distance import cdist
 
 def calculate_overlapping(solutions, coords, ts, eu_side, time_phase_dist, time_step):
 	# calculate continuity of habitation areas expressed as a ratio of units of a phase overlapping units from the previous phase
-	# returns two numpy arrays: overlapping, t_bins
-	# overlapping[ti1, ti2] = r; where ti1, ti2 = indices in t_bins
-	# t_bins = [t, ...]; where t = absolute dating of the beginning of the bin in years BP
+	# inputs:
+	#	solutions[si, i, pi] = True/False; where si = index of solution, i = index in coords and pi = index of phase
+	#	coords = [[X, Y], ...]; unique coordinates of evidence units
+	#	ts = [t, ...]; where t = absolute dating in years BP
+	#	eu_side = evidence unit square side (m)
+	#	time_phase_dist[ti, pi] = n; where ti = index in ts, pi = index of phase and n = number of incidences where phase pi dates to time ti
+	#	time_step = time step in calendar years to use for binning temporal distributions
+	# returns numpy arrays: overlapping, t_bins
+	#	overlapping[ti1, ti2] = r; where ti1, ti2 = indices in t_bins
+	#	t_bins = [t, ...]; where t = absolute dating of the beginning of the bin in years BP
 	
 	coords_n = coords.shape[0]
 	solutions_n = solutions.shape[0]
