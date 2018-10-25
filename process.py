@@ -1,30 +1,40 @@
+
 from matplotlib import pyplot
-from sa_lib import *
 import multiprocessing as mp
 import numpy as np
 
+from fnc_generate_maps import (generate_production_area_maps)
+from fnc_pcf import (calculate_PCF_solutions, calculate_PCF_randomized)
+from fnc_continuity import (calculate_overlapping)
+from fnc_hsi import (calculate_HSI)
+from fnc_summation import (sum_habitation_phases, mean_habitation_time, sum_evidence)
+from fnc_chrono_modelling import (get_phase_intervals, get_chains, get_time_phase_distribution, get_phase_datings)
+from fnc_chrono_spatial_modelling import (find_clusters, find_solutions)
+from fnc_data import (load_input_data, GeoTIFF)
+from fnc_descr_system import (get_descriptive_system)
+from fnc_common import (get_unique_2d)
 
 PROC_N = 8 # number of processors to use for multiprocessing
 
-INTERVAL_THRESH = 200
+INTERVAL_THRESH = 200 # TODO describe
 EU_SIDE = 100 # Evidence unit side (m)
 PRODUCTION_AREA = 25 # Production area (ha)
-WATER_LIMIT = 10
+WATER_LIMIT = 10 # TODO describe
 ADD_PHASE_AFTER = 200 # number of attempts after which to add a phase if no solution has been found
-TIME_STEP = 100
-RANDOMIZE_N = 1000
+TIME_STEP = 100 # TODO describe
+RANDOMIZE_N = 1000 # TODO describe
 
 DISTRIBUTION = "uniform" # prior distribution used to determine absolute dating of phases
 						# possible values are: "uniform" / "trapezoid" / "sigmoid"
-TRANSITION_INTERVAL = 50
+TRANSITION_INTERVAL = 50 # length of transition interval between phases in calendar years
 
-FDEM = "data/raster/dem.tif"
-FSLOPE = "data/raster/slope.tif"
-FWATER = "data/raster/water.tif"
+FDEM = "data/raster/dem.tif" # TODO describe
+FSLOPE = "data/raster/slope.tif" # TODO describe
+FWATER = "data/raster/water.tif" # TODO describe
 
-FCOORDS = "data/coords_examined.csv"
+FCOORDS = "data/coords_examined.csv" # TODO describe
 
-FEVIDENCE = "data/evidence_br_ha.csv"
+FEVIDENCE = "data/evidence_br_ha.csv" # TODO describe
 #FEVIDENCE = "data/evidence.csv"
 
 if __name__ == '__main__':
@@ -58,14 +68,18 @@ if __name__ == '__main__':
 ##### FIND POSSIBLE SOLUTIONS FOR ASSIGNING EVIDENCE UNITS TO CHRONO-SPATIAL PHASES WHILE MODELING PRODUCTION AREAS AROUND HABITATION AREAS
 
 	print()
-	print("finding solutions for chrono-spatial phasing of evidence units")
-	print("evidence units:", len(coords))
-	print("initial phases:", len(phases_chrono))
+	print("MCMC modelling chrono-spatial phasing of evidence units")
+	print("\tevidence units:", len(coords))
+	print("\tinitial phases:", len(phases_chrono))
 	print()
 	
-#	solutions, phases_spatial = find_solutions(intervals, phases_chrono, intervals_coords, neighbours, exclude, ADD_PHASE_AFTER, PROC_N, pool)
+	'''
+	solutions, phases_spatial = find_solutions(intervals, phases_chrono, intervals_coords, neighbours, exclude, ADD_PHASE_AFTER, PROC_N, pool)
+	''' # DEBUG
 	
 	import json # DEBUG
+#	with open("tmp_sol_br_ha.json", "w") as f: # DEBUG
+#		json.dump([solutions.tolist(), phases_spatial], f) # DEBUG
 	with open("tmp_sol_br_ha.json", "r") as f: # DEBUG
 		solutions, phases_spatial = json.load(f) # DEBUG
 		solutions = np.array(solutions)
@@ -80,15 +94,15 @@ if __name__ == '__main__':
 	
 	print()
 	print()
-	print("MCMC modeling absolute chronology of phases")
-	print("phases:", len(phases_spatial))
+	print("MCMC modelling absolute chronology of phases")
+	print("\tphases:", len(phases_spatial))
 	print()
 	
+	'''
 	phase_intervals, pis = get_phase_intervals(intervals, phases_spatial)
 	# phase_intervals[qi] = [BP_from, BP_to]; where qi = index in pis
 	# pis = [pi, ...]; where pi = index of phase; ordered by earliest interval first
 	
-	'''
 	chains = get_chains(phase_intervals, DISTRIBUTION, TRANSITION_INTERVAL)
 	
 	# chains = [chain, ...]; where chain[qi] = t; where qi = index in pis and t = time in calendar years BP
@@ -105,9 +119,12 @@ if __name__ == '__main__':
 	pis = pis.tolist()
 	phase_intervals = np.array([phase_intervals[pis.index(qi)].tolist() for qi in range(len(pis))], dtype = int)
 	phase_datings = np.array([phase_datings[pis.index(qi)].tolist() for qi in range(len(pis))], dtype = int)
-	'''
+	'''  # DEBUG
 	
 	# DEBUG start
+	import json # DEBUG
+#	with open("tmp_tdist_%s_br_ha.json" % (DISTRIBUTION), "w") as f:
+#		json.dump([phase_intervals.tolist(), phase_datings.tolist(), ts.tolist(), time_phase_dist.tolist()], f)
 	with open("tmp_tdist_%s_br_ha.json" % (DISTRIBUTION), "r") as f:
 		phase_intervals, phase_datings, ts, time_phase_dist = json.load(f)
 	phase_intervals = np.array(phase_intervals, dtype = np.uint16)
@@ -210,21 +227,28 @@ if __name__ == '__main__':
 	tmax = max(ts.max(), ts_evid.max())
 	num_evidence_avg = num_evidence.sum() / ts_evid.shape[0]
 
-	pyplot.subplot(211)
-	pyplot.plot(ts_evid, num_evidence)
-	pyplot.plot([tmax, tmin], [num_evidence_avg, num_evidence_avg], color = "green")
+	ax = pyplot.subplot(211)
+	ax.set_title("Summed evidence")
+	ax.plot(ts_evid, num_evidence, color = "k")
+	ax.plot([tmax, tmin], [num_evidence_avg, num_evidence_avg], color = "green", label = "Average")
 	pyplot.xticks(ts_evid[::200], ts_evid[::200] - 1950)
+	ax.set_xlabel("Time (years BC)")
+	ax.set_ylabel("Amount")
+	ax.legend()
 	pyplot.xlim(tmax, tmin)
 
-	pyplot.subplot(212)
-	pyplot.plot(ts, num_habi_t, color = "k")
-	#pyplot.plot(ts, running_mean(num_habi_t, ts, 100), color = "red")
-	pyplot.plot([tmax, tmin], [num_habi_avg, num_habi_avg], color = "green")
+	ax = pyplot.subplot(212)
+	ax.set_title("Summed modelled habitation areas")
+	ax.plot(ts, num_habi_t, color = "k")
+	ax.plot([tmax, tmin], [num_habi_avg, num_habi_avg], color = "green", label = "Average")
 	pyplot.xticks(ts[::200], ts[::200] - 1950)
+	ax.set_xlabel("Time (years BC)")
+	ax.set_ylabel("Amount")
+	ax.legend()
 	pyplot.xlim(tmax, tmin)
 
 	pyplot.tight_layout()
-	pyplot.savefig("_tmp/graph_01_evidence_vs_habitation.png")
+	pyplot.savefig("output/graph_01_evidence_vs_habitation.png")
 	fig.clf()
 	pyplot.close()
 
@@ -236,11 +260,13 @@ if __name__ == '__main__':
 	
 	fig = pyplot.figure(figsize = (8, 3))
 	pyplot.title("Mean Habitation Stability Index (HSI)")
-	pyplot.plot(ts, hsi_mean)
+	pyplot.plot(ts, hsi_mean, color = "k")
 	pyplot.xticks(ts[::200], ts[::200] - 1950)
+	pyplot.xlabel("Time (years BC)")
+	pyplot.ylabel("HSI")
 	pyplot.xlim(ts.min(), ts.max())
 	pyplot.tight_layout()
-	pyplot.savefig("_tmp/graph_02_hsi.png")
+	pyplot.savefig("output/graph_02_hsi.png")
 	fig.clf()
 	pyplot.close()
 
@@ -261,10 +287,15 @@ if __name__ == '__main__':
 	pyplot.title("Mean Habitation Stability Index (HSI)")
 	pyplot.imshow(water, extent = extent, cmap = "Blues")
 	pyplot.scatter(coords[:,0], coords[:,1], c = hsi_mean_map, cmap = "Reds", s = 20, marker = "s")
-	pyplot.colorbar()
+	cbar = pyplot.colorbar()
 	pyplot.xticks(rotation = 45)
+	pyplot.xlabel("X (Pulkovo_1942_GK_Zone_3; EPSG: 28403)")
+	pyplot.ylabel("Y (Pulkovo_1942_GK_Zone_3; EPSG: 28403)", rotation = 90)
+	cbar.set_label("HSI")
+	
+	
 	pyplot.tight_layout()
-	pyplot.savefig("_tmp/graph_03_hsi_map.png")
+	pyplot.savefig("output/graph_03_hsi_map.png")
 	fig.clf()
 	pyplot.close()
 
@@ -274,12 +305,20 @@ if __name__ == '__main__':
 	print()
 	print("Plotting matrix of spatial overlapping of habitation area units from subsequent phases")
 	
+	t_labels = t_bins + int(round(TIME_STEP / 2)) - 1950
+	
 	fig = pyplot.figure(figsize = (10, 8))
 	pyplot.title("Spatial continuity of habitation areas")
-	pyplot.matshow(overlapping, cmap = "jet")
-	pyplot.colorbar()
+	pyplot.imshow(overlapping, interpolation = "nearest", cmap = "jet")
+	cbar = pyplot.colorbar()
+	pyplot.xticks(range(t_bins.shape[0]), t_labels, rotation = 90)
+	pyplot.yticks(range(t_bins.shape[0]), t_labels)
+	pyplot.gca().invert_xaxis()
+	pyplot.xlabel("Time (years BC) - Earlier")
+	pyplot.ylabel("Time (years BC) - Later", rotation = 90)
+	cbar.set_label("Ratio of overlapping")
 	pyplot.tight_layout()
-	pyplot.savefig("_tmp/graph_04_spatial_continuity.png")
+	pyplot.savefig("output/graph_04_spatial_continuity.png")
 	fig.clf()
 	pyplot.close()
 
@@ -287,23 +326,34 @@ if __name__ == '__main__':
 ##### PLOT PCF FOR EVERY PHASE
 
 	print()
-	print("Plotting pcf for every phase")
+	print("Plotting PCF for every phase")
 	
 	gmax = pcf[:,:,1].max()
 	for _, _, g_upper in pcf_randomized:
 		gmax = max(gmax, g_upper.max())
 	
-	fig = pyplot.figure(figsize = (8, 15))
-	
+	fig = pyplot.figure(figsize = (8, 20))
+	fig.text(0.5, 0.99, "Spatial correlation of habitation areas (PCF)", ha = "center", va = "center", fontsize = 12)
+	ph = 1
 	for pi in pis_sorted:
-		pyplot.subplot(pis_sorted.shape[0], 1, pi + 1)
+		
+		BC_from, BC_to = phase_datings[pi] - 1950
+		
+		ax = pyplot.subplot(pis_sorted.shape[0], 1, ph)
 		radii, g_lower, g_upper = pcf_randomized[pi]
-		pyplot.fill_between(radii, g_lower, g_upper, color = "lightgray")
-		pyplot.plot(pcf[pi,:,0], pcf[pi,:,1], color = "k")
+		ax.fill_between(radii, g_lower, g_upper, color = "lightgray", label = "90% randomized interval")
+		ax.plot(pcf[pi,:,0], pcf[pi,:,1], color = "k")
+		ax.set_ylabel("g(r)")
+		ax.text(0.02, 0.85, "Chrono-spatial phase %d (%d - %d BC)" % (ph, BC_from, BC_to), ha = "left", transform = ax.transAxes)
+		ax.legend()
 		pyplot.ylim(0, gmax)
+		
+		ph += 1
 	
-	pyplot.tight_layout()
-	pyplot.savefig("_tmp/graph_05_PCF.png")
+	ax.set_xlabel("Radius (m)")
+	
+	pyplot.tight_layout(rect= [0, 0, 1, 0.98])
+	pyplot.savefig("output/graph_05_PCF.png")
 	fig.clf()
 	pyplot.close()
 	
@@ -320,16 +370,19 @@ if __name__ == '__main__':
 		
 		ps = solutions[:,:,pi].mean(axis = 0)
 		
-		CE_from, CE_to = 1950 - phase_datings[pi]
+		BC_from, BC_to = phase_datings[pi] - 1950
 		
 		fig = pyplot.figure(figsize = (10, 8))
-		pyplot.title("Phase %d (%d - %d CE)" % (ph, CE_from, CE_to))
+		pyplot.title("Chrono-spatial phase %d (%d - %d BC)" % (ph, BC_from, BC_to))
 		pyplot.imshow(water, extent = extent, cmap = "Blues")
 		pyplot.scatter(coords[:,0], coords[:,1], c = ps, cmap = "Reds", s = 20, vmin = 0, vmax = 1, marker = "s")
-		pyplot.colorbar()
+		cbar = pyplot.colorbar()
 		pyplot.xticks(rotation = 45)
+		pyplot.xlabel("X (Pulkovo_1942_GK_Zone_3; EPSG: 28403)")
+		pyplot.ylabel("Y (Pulkovo_1942_GK_Zone_3; EPSG: 28403)", rotation = 90)
+		cbar.set_label("Probability density", rotation = 270)
 		pyplot.tight_layout()
-		pyplot.savefig("_tmp/map_habitation_ph_%03d.png" % (ph))
+		pyplot.savefig("output/map_habitation_ph_%03d.png" % (ph))
 		fig.clf()
 		pyplot.close()
 		
@@ -354,23 +407,25 @@ if __name__ == '__main__':
 				collect = []
 				for i in cluster:
 					collect += production_areas[i].tolist()
-				collect = np.array(collect, dtype = int)
-				collect = np.unique(np.ascontiguousarray(collect).view(np.dtype((np.void, collect.dtype.itemsize * 2)))).view(collect.dtype).reshape(-1, 2)
+				collect = get_unique_2d(np.array(collect, dtype = int))
 				grid[collect[:,0], collect[:,1]] += 1
 		grid /= solutions.shape[0]
 		
 		grid[grid == 0] = np.nan
 		
-		CE_from, CE_to = 1950 - phase_datings[pi]
+		BC_from, BC_to = phase_datings[pi] - 1950
 		
 		fig = pyplot.figure(figsize = (10, 8))
-		pyplot.title("Phase %d (%d - %d CE)" % (ph, CE_from, CE_to))
+		pyplot.title("Chrono-spatial phase %d (%d - %d BC)" % (ph, BC_from, BC_to))
 		pyplot.imshow(water, extent = extent, cmap = "Blues")
 		pyplot.imshow(grid, cmap = "Reds", extent = extent, vmin = 0, vmax = 1)
-		pyplot.colorbar()
+		cbar = pyplot.colorbar()
 		pyplot.xticks(rotation = 45)
+		pyplot.xlabel("X (Pulkovo_1942_GK_Zone_3; EPSG: 28403)")
+		pyplot.ylabel("Y (Pulkovo_1942_GK_Zone_3; EPSG: 28403)", rotation = 90)
+		cbar.set_label("Probability density", rotation = 270)
 		pyplot.tight_layout()
-		pyplot.savefig("_tmp/map_production_ph_%03d.png" % (ph))
+		pyplot.savefig("output/map_production_ph_%03d.png" % (ph))
 		fig.clf()
 		pyplot.close()
 		
