@@ -29,13 +29,27 @@ def sum_habitation_phases(solutions, neighbours):
 
 	return num_habitation_areas
 
+def calc_mean_freq(frequencies, vals):
+	# calculate mean from a frequency distribution
+	# inputs:
+	#	frequencies[ti, vi] = amount; vi = index in vals; ti = index in ts
+	#	vals = [value, ...]
+	# returns a numpy array: mean_freq[ti] = mean value; where ti = index in ts
+	mean_freq = np.zeros(frequencies.shape[0])
+	freq_sum = frequencies.sum(axis=1)
+	mask = (freq_sum > 0)
+	mean_freq[mask] = (frequencies * vals[None, :])[mask].sum(axis=1) / freq_sum[mask]  # mean_freq[ti] = mean value
+	return mean_freq
 
 def mean_habitation_time(num_habit, time_phase_dist):
 	# calculate temporal distribution of amount of modelled habitation areas, summed by calendar years
 	# inputs:
 	#	num_habit[pi, si] = amount
 	#	time_phase_dist[ti, pi] = n; where ti = index in ts, pi = index of phase and n = number of incidences where phase pi dates to time ti
-	# return num_habitation_t[ti] = mean amount
+	# returns two numpy arrays: num_habitation_t, num_habitation_t_lower, num_habitation_t_upper
+	# 	num_habitation_t[ti] = mean amount per year
+	# 	num_habitation_t_lower[ti] = lower boundary of 90% interval
+	# 	num_habitation_t_upper[ti] = upper boundary of 90% interval
 
 	# get distribution of values in phases
 	vals = np.unique(num_habit)
@@ -54,17 +68,19 @@ def mean_habitation_time(num_habit, time_phase_dist):
 			for pi in phs:
 				ph_s_v_n[si, pi, vi] = 1
 
-	# calculate mean
-	num_habitation_t = np.zeros(time_phase_dist.shape[0])
-	data = (time_phase_dist[:, :, None] * ph_v_n[None, :, :]).sum(
-		axis=1)  # [ti, vi] = amount; vi = index in vals; ti = index in ts
-	data_sum = data.sum(axis=1)
-	mask = (data_sum > 0)
-	num_habitation_t[mask] = (data * vals[None, :])[mask].sum(axis=1) / data_sum[
-		mask]  # num_habitation_t[ti] = mean val
-
-	return num_habitation_t
-
+	# calculate means
+	num_habitation_t = calc_mean_freq((time_phase_dist[:, :, None] * ph_v_n[None, :, :]).sum(axis=1), vals)  # num_habitation_t[ti] = mean val
+	num_habitation_t_sol = np.zeros((num_habit.shape[1], time_phase_dist.shape[0]))  # num_habitation_t_sol[si, ti] = mean val
+	for si in range(num_habit.shape[1]):
+		num_habitation_t_sol[si] = calc_mean_freq((time_phase_dist[:,:,None] * ph_s_v_n[si,None,:,:]).sum(axis = 1), vals)
+	
+	num_habitation_t_lower = np.zeros(num_habitation_t.shape)
+	num_habitation_t_upper = np.zeros(num_habitation_t.shape)
+	for ti in range(time_phase_dist.shape[0]):
+		num_habitation_t_lower[ti] = np.percentile(num_habitation_t_sol[:,ti], 5)
+		num_habitation_t_upper[ti] = np.percentile(num_habitation_t_sol[:,ti], 95)
+	
+	return num_habitation_t, num_habitation_t_lower, num_habitation_t_upper
 
 def sum_evidence(data):
 	# calculate temporal distribution of evidence, summed by calendar years

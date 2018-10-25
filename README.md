@@ -7,7 +7,7 @@ TODO
 Peter Demján (peter.demjan@gmail.com)
 
 ## Overview
-This is an example implementation of chrono-spatial modelling of settlement activities used in the aforementioned paper. The purpose is to provide a functional overview of the used methods, which is possible to execute and run without access to supercomputing facitities. Sample data is provided, which represents a subset of the actual data used in the original study. As of 2018, the processing should take under 48 hours on a reasonably powerful personal computer.
+This is an example implementation of chrono-spatial modelling of settlement activities used in the aforementioned paper. The purpose is to provide a functional overview of the used methods, which is possible to execute and run without access to supercomputing facilities. Sample data is provided, which represents a subset of the actual data used in the original study. As of 2018, the processing should take under 48 hours on a reasonably powerful personal computer. The algorithms are intentionally only weakly optimized to preserve better readability of the code.
 
 The processing includes the following steps:
 1. Load input data and generate a descriptive system
@@ -16,8 +16,8 @@ The processing includes the following steps:
 4. Calculate temporal distribution of amount of modelled habitation areas
 5. Calculate temporal distribution of summed evidence
 6. Calculate temporal distribution of the Habitation Stability Index (HSI)
-7. Analyse habitation continuity by calculating ratio of overlapping of habitation areas in subsequent phases
-8. Analyse spatial clustering of habitation areas by calculating a Pair Correlation Function (pcf) for every solution
+7. Analyze habitation continuity by calculating ratio of overlapping of habitation areas in subsequent phases
+8. Analyze spatial clustering of habitation areas by calculating a Pair Correlation Function (PCF) for every solution
 9. Generate raster probability maps of modelled production areas for every chrono-spatial phase
 10. Plot the results
 
@@ -38,12 +38,17 @@ Input data are loaded from the directory [data](data) and have the form of CSV f
 Results are plotted in from of graphs and maps in the directory [output](output).
 Pre-computed example results are available in the directory [example_output](example_output).
 
+## Requirements
+
+Running the script requires [Python 3.6](https://www.python.org/)
+
 ## Dependencies
 
-[Python 3.6](https://www.python.org/)
-TODO
+The script requires the following libraries to be installed:
+* [NumPy](http://www.numpy.org/): pip install numpy
+* [SciPy](https://www.scipy.org/): pip install scipy
+* [GDAL](http://www.gdal.org/): pip install GDAL
 
-
-## Licence:
+## License:
 This code is licensed under the [MIT License](http://opensource.org/licenses/MIT) - see the [LICENSE.md](LICENSE.md) file for details
 

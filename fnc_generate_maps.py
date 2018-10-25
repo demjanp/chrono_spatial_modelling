@@ -17,6 +17,7 @@ def generate_production_area_maps(solutions, raster_shape, neighbours, productio
 
 	pa_grids = np.zeros((phases_n, raster_shape[0], raster_shape[1]))
 	for pi in range(phases_n):
+		print("\rphase %d\%d       " % (pi + 1, phases_n), end = "")
 		for solution in solutions:
 			idxs = np.where(solution[:, pi])[0]
 			clusters = find_clusters(idxs, neighbours)

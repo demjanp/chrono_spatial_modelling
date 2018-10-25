@@ -7,9 +7,11 @@ def calculate_HSI(solutions, coords, eu_side, time_phase_dist):
 	#	coords = [[X, Y], ...]; unique coordinates of evidence units
 	#	eu_side = evidence unit square side (m)
 	#	time_phase_dist[ti, pi] = n; where ti = index in ts, pi = index of phase and n = number of incidences where phase pi dates to time ti
-	# returns two numpy arrays: hsi_mean, hsi_mean_map
-	#	hsi_mean_map[pi, i] = mean HSI; where pi = index of phase and i = index in coords
+	# returns numpy arrays: hsi_mean, hsi_mean_lower, hsi_mean_upper, hsi_mean_map
 	#	hsi_mean[ti] = mean HSI; where ti = index in ts
+	#	hsi_mean_lower[ti] = lower boundary of 90% interval
+	#	hsi_mean_upper[ti] = upper boundary of 90% interval
+	#	hsi_mean_map[pi, i] = mean HSI; where pi = index of phase and i = index in coords
 	
 	ts_n = time_phase_dist.shape[0]
 	phases_n = time_phase_dist.shape[1]
@@ -44,12 +46,21 @@ def calculate_HSI(solutions, coords, eu_side, time_phase_dist):
 	count_time = np.zeros((ts_n, solutions_n, 2), dtype = float) # [ti, si] = [p_habi, p_stable]
 	for pi in range(phases_n):
 		count_time += (count[None,pi,:,:] * tpd[:,pi,None,None])
-	hsi_mean_map = presence.mean(axis = 2) # [pi,i] = mean p
-	hsi_mean = count_time.sum(axis = 1)
-	mask = (hsi_mean[:,0] > 0)
-	collect = np.zeros(hsi_mean.shape[0])
-	collect[mask] = hsi_mean[:,1][mask] / hsi_mean[:,0][mask]
-	hsi_mean = collect
 	
-	return hsi_mean, hsi_mean_map
+	hsi_mean_map = presence.mean(axis = 2) # [pi,i] = mean p
+	
+	hsi_mean = count_time.sum(axis = 1)
+	hsi_mean = hsi_mean[:,1] / hsi_mean[:,0]
+	hsi_mean[np.isnan(hsi_mean) | (hsi_mean == np.inf)] = 0
+	
+	hsi_mean_sol = (count_time[:,:,1] / count_time[:,:,0]).T # hsi_mean_sol[si, ti] = mean p
+	hsi_mean_sol[np.isnan(hsi_mean_sol) | (hsi_mean_sol == np.inf)] = 0
+	
+	hsi_mean_lower = np.zeros(hsi_mean.shape) # hsi_mean_lower[ti] = lower boundary of 90% interval
+	hsi_mean_upper = np.zeros(hsi_mean.shape) # hsi_mean_upper[ti] = upper boundary of 90% interval
+	for ti in range(ts_n):
+		hsi_mean_lower[ti] = np.percentile(hsi_mean_sol[:,ti], 5)
+		hsi_mean_upper[ti] = np.percentile(hsi_mean_sol[:,ti], 95)
+	
+	return hsi_mean, hsi_mean_lower, hsi_mean_upper, hsi_mean_map
 
