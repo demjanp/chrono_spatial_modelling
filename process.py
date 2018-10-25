@@ -1,5 +1,6 @@
 import multiprocessing as mp
 import numpy as np
+import os
 from matplotlib import pyplot
 
 from fnc_chrono_modelling import (get_phase_intervals, get_chains, get_time_phase_distribution, get_phase_datings)
@@ -39,6 +40,9 @@ FEVIDENCE = "data/evidence.csv"  # path in string format to a CSV file containin
 if __name__ == '__main__':
 
 	pool = mp.Pool(processes=PROC_N)
+
+	if not os.path.exists("output"):
+		os.makedirs("output")
 
 	##### LOAD INPUT DATA
 
@@ -209,7 +213,7 @@ if __name__ == '__main__':
 	pa_grids = generate_production_area_maps(solutions, raster_shape, neighbours, production_areas)
 
 	# pa_grids[pi, i, j] = p; where pi = index of phase; i, j = indices in 2D raster with cell size = EU_SIDE; p = probability of presence of production area
-	
+
 	##### PLOT AMOUNT OF HABITATION AREAS VS. AMOUNT OF EVIDENCE PER YEAR
 
 	print()
