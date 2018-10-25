@@ -31,6 +31,8 @@ Processing parameters are set by editing the values at the beginning of the [pro
 
 It is possible to set different prior distributions for the chronometric modelling (step 3): uniform, trapezoid and sigmoid. This simulates different transitions between archaeological cultures, which were used to obtain the absolute dating intervals of the evidence units. The duration of the transition interval can also be set. The non-uniform distributions are modelled according to: Karlsberg A.J. 2006. Flexible Bayesian methods for archaeological dating (PhD thesis). Sheffield: University of Sheffield.
 
+The code to compute the Pair Correlation Function is created according to an [example](https://github.com/cfinch/Shocksolution_Examples/tree/master/PairCorrelation) by Craig Finch.
+
 Input data are loaded from the directory [data](data) and have the form of CSV files and [GeoTIFF](https://www.gdal.org/frmt_gtiff.html) rasters.
 
 Results are plotted in from of graphs and maps in the directory [output](output).
@@ -44,5 +46,5 @@ TODO
 
 
 ## Licence:
-This code is licensed under the [MIT License](http://opensource.org/licenses/MIT) - see the LICENSE.md file for details
+This code is licensed under the [MIT License](http://opensource.org/licenses/MIT) - see the [LICENSE.md](LICENSE.md) file for details
 
