@@ -2,7 +2,7 @@ import numpy as np
 
 from fnc_common import (get_unique_2d)
 from fnc_data import (GeoTIFF)
-from fnc_stats_spatial import (get_cost, find_excluding_pairs, find_neighbours)
+from fnc_stats_spatial import (get_cost, get_production_areas, find_excluding_pairs, find_neighbours)
 from fnc_stats_temporal import (get_dating_intervals, get_chronological_phases, get_intervals_per_coords)
 
 
@@ -56,12 +56,7 @@ def get_descriptive_system(data, interval_thresh, eu_side, production_area, wate
 
 	intervals_coords = get_intervals_per_coords(data, coords)  # intervals_coords[i] = [[BP_from, BP_to], ...]; where i = index in coords
 
-	#	production_areas = get_production_areas(coords, dem, cost_surface, vertical_component, production_area)
-	import json  # DEBUG
-	#	with open("tmp_pa.json", "w") as f: # DEBUG
-	#		json.dump([area.tolist() for area in production_areas], f) # DEBUG
-	with open("tmp_pa.json", "r") as f:  # DEBUG
-		production_areas = [np.array(area, dtype=int) for area in json.load(f)]  # DEBUG
+	production_areas = get_production_areas(coords, dem, cost_surface, vertical_component, production_area)
 
 	# filter out coords where a production area cannot be modelled (e.g. they lie in a riverbed)
 	idxs = [i for i in range(len(coords)) if len(production_areas[i]) > 0]

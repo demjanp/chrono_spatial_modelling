@@ -69,17 +69,7 @@ if __name__ == '__main__':
 	print("\tinitial phases:", len(phases_chrono))
 	print()
 
-	'''
 	solutions, phases_spatial = find_solutions(intervals, phases_chrono, intervals_coords, neighbours, exclude, ADD_PHASE_AFTER, PROC_N, pool)
-	'''  # DEBUG
-
-	import json  # DEBUG
-
-	#	with open("tmp_sol.json", "w") as f: # DEBUG
-	#		json.dump([solutions.tolist(), phases_spatial], f) # DEBUG
-	with open("tmp_sol.json", "r") as f:  # DEBUG
-		solutions, phases_spatial = json.load(f)  # DEBUG
-		solutions = np.array(solutions)
 
 	phases_n = len(phases_spatial)
 
@@ -116,19 +106,6 @@ if __name__ == '__main__':
 	pis = pis.tolist()
 	phase_intervals = np.array([phase_intervals[pis.index(qi)].tolist() for qi in range(len(pis))], dtype=int)
 	phase_datings = np.array([phase_datings[pis.index(qi)].tolist() for qi in range(len(pis))], dtype=int)
-	
-	# DEBUG start
-	import json  # DEBUG
-
-	with open("tmp_tdist_%s.json" % (DISTRIBUTION), "w") as f:
-		json.dump([phase_intervals.tolist(), phase_datings.tolist(), ts.tolist(), time_phase_dist.tolist()], f)
-#	with open("tmp_tdist_%s.json" % (DISTRIBUTION), "r") as f:
-#		phase_intervals, phase_datings, ts, time_phase_dist = json.load(f)
-#		phase_intervals = np.array(phase_intervals, dtype = np.uint16)
-#		phase_datings = np.array(phase_datings)
-#		ts = np.array(ts, dtype = int)
-#		time_phase_dist = np.array(time_phase_dist, dtype = int)
-	# DEBUG end
 
 	# phase_intervals[pi] = [BP_from, BP_to]; where pi = index in pis
 	# phase_datings[pi] = [BP_from, BP_to]; where pi = index in pis
