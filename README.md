@@ -58,5 +58,5 @@ The script requires the following libraries to be installed:
 * [GDAL](http://www.gdal.org/): pip install GDAL
 
 ## License:
-This code is licensed under the [MIT License](http://opensource.org/licenses/MIT) - see the [LICENSE.md](LICENSE.md) file for details
+This code is licensed under the [MIT License](http://opensource.org/licenses/MIT) - see the [LICENSE](LICENSE) file for details
 
