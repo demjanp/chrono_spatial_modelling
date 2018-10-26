@@ -4,7 +4,7 @@ import os
 from matplotlib import pyplot
 
 from fnc_chrono_modelling import (get_phase_intervals, get_chains, get_time_phase_distribution, get_phase_datings)
-from fnc_chrono_spatial_modelling import (find_clusters)
+from fnc_chrono_spatial_modelling import (find_clusters, find_solutions)
 from fnc_common import (get_unique_2d)
 from fnc_continuity import (calculate_overlapping)
 from fnc_data import (load_input_data, GeoTIFF)
