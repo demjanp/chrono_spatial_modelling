@@ -22,53 +22,45 @@ def get_phase_intervals(intervals, phases_spatial):
 	return phase_intervals, pis_sorted
 
 
-def get_chains(phase_intervals, distribution, t_transition):
+def get_chains(phase_intervals, distribution):
 	# generate Markov Chains for chronometric modelling
 	"""
 		Assign absolute dates to the modelled chrono-spatial phases under the assumption of a phase-sequence model, as described by 
 		Bronk Ramsey, C. (2009). Bayesian analysis of radiocarbon dates. Radiocarbon, 51(1): 337-360.
-		The original likelihoods for each phase are the dating intervals represented as uniform, trapezoid or sigmoid probability distributions.
+		The original likelihoods for each phase are the dating intervals represented as uniform or trapezoid probability distributions.
 	"""
 
 	# inputs:
-	#	distribution = "uniform" / "trapezoid" / "sigmoid"
-	#	t_transition = length of the transition periods at the beginning and end of the distribution (only valid for trapezoid and sigmoid distributions)
+	#	distribution = "uniform" / "trapezoid"
 	# returns a list: chains = [chain, ...]; where chain[qi] = t; where qi = index in pis and t = time in calendar years BP
 
-	def get_dist_lookup(phase_intervals, t_transition):
-		# generate lookup tables for trapezoid and sigmoid distributions (see Karlsberg 2006) to speed up generating dates
+	def get_dist_lookup(phase_intervals):
+		# generate lookup table for trapezoid distribution (see Karlsberg 2006) to speed up generating dates
 
 		dist_lookup_trapezoid = {}
-		dist_lookup_sigmoid = {}
 		for t2, t1 in phase_intervals:
-			t_trans = min(t_transition, t2 - t1)
-			a = t1 - t_trans / 2
-			b = t1 + t_trans / 2
-			c = t2 - t_trans / 2
-			d = t2 + t_trans / 2
+			d1 = np.random.randint(1, t2 - t1)
+			d2 = np.random.randint(1, t2 - t1)
+			a = t1 - d1 / 2
+			b = t1 + d1 / 2
+			c = t2 - d2 / 2
+			d = t2 + d2 / 2
 			h = 2 / (d + c - a - b)
 			ts = np.arange(a, d)
-			ps_trapezoid = np.zeros(ts.shape[0])
-			ps_sigmoid = np.zeros(ts.shape[0])
-			gs = np.linspace(0, 1, t_trans)
-			gs = gs ** 2 / (gs ** 2 + (1 - gs) ** 2)
+			ps = np.zeros(ts.shape[0])
 
 			mask = ((ts >= a) & (ts < b))
-			ps_trapezoid[mask] = h * ((ts[mask] - a) / (b - a))
-			ps_sigmoid[mask] = ps_trapezoid[mask] * gs
+			ps[mask] = h * ((ts[mask] - a) / (b - a))
 
 			mask = ((ts >= b) & (ts < c))
-			ps_trapezoid[mask] = h
-			ps_sigmoid[mask] = h
+			ps[mask] = h
 
 			mask = ((ts >= c) & (ts <= d))
-			ps_trapezoid[mask] = h * ((d - ts[mask]) / (d - c))
-			ps_sigmoid[mask] = ps_trapezoid[mask] * (1 - gs)
+			ps[mask] = h * ((d - ts[mask]) / (d - c))
 
 			key = "%d_%d" % (t2, t1)
-			dist_lookup_trapezoid[key] = [ts, ps_trapezoid]
-			dist_lookup_sigmoid[key] = [ts, ps_sigmoid]
-		return dist_lookup_trapezoid, dist_lookup_sigmoid
+			dist_lookup_trapezoid[key] = [ts, ps]
+		return dist_lookup_trapezoid
 
 	def get_chain(phase_intervals, func_pick_date, dist_lookup):
 
@@ -138,12 +130,11 @@ def get_chains(phase_intervals, distribution, t_transition):
 
 		return np.random.choice(ts, 1, p=ps)[0]
 
-	dist_lookup_trapezoid, dist_lookup_sigmoid = get_dist_lookup(phase_intervals, t_transition)
+	dist_lookup_trapezoid = get_dist_lookup(phase_intervals)
 
 	pick_date_fnc = {
 		"uniform": [pick_date_uniform, None],
 		"trapezoid": [pick_date_nonuniform, dist_lookup_trapezoid],
-		"sigmoid": [pick_date_nonuniform, dist_lookup_sigmoid],
 	}
 
 	chains = np.array([get_chain(phase_intervals, *pick_date_fnc[distribution])], dtype=np.uint16)
@@ -158,7 +149,7 @@ def get_chains(phase_intervals, distribution, t_transition):
 			counter = 0
 		chains_mean0 = chains_mean
 		if chains.shape[0] % 100 == 0:
-			print("\rchains: %d  diff: %0.6f       " % (chains.shape[0], diff), end="")
+			print("\rchains: %d  diff: %0.7f       " % (chains.shape[0], diff), end="")
 
 	return chains
 

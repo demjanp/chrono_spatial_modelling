@@ -16,26 +16,22 @@ from fnc_summation import (sum_habitation_phases, mean_habitation_time, sum_evid
 
 PROC_N = 8  # number of processors to use for multiprocessing
 
-INTERVAL_THRESH = 200  # threshold for a time interval lenght under which this interval is considered contemporary with another if it overlaps with it by any length
 EU_SIDE = 100  # Evidence unit square side (m)
 PRODUCTION_AREA = 25  # Production area (ha)
-WATER_LIMIT = 10  # limit of water flow which is easily passable
+WATER_LIMIT = 10  # limit of water flow which is easily passable (= amount of hectares from which the water has accumulated in the flow accumulation model)
 ADD_PHASE_AFTER = 200  # number of attempts after which to add a phase if no solution has been found
-TIME_STEP = 100  # time step in calendar years to use for binning temporal distributions
+TIME_STEP = 100  # time step in calendar years to use for binning temporal distributions (used in visualising settlement continuity)
+INTERVAL_THRESH = 200  # threshold for a time interval lenght under which this interval is considered contemporary with another if it overlaps with it by any length (reflects the current state of knowledge, where some short-lived cultural periods are considered contemporary with longer periods, even though their traditionally assigned absolute datings do not fully overlap)
 RANDOMIZE_N = 1000  # number of randomized solutions to generate when calculating the spatial correlation of habitation areas (PCF)
 
-DISTRIBUTION = "uniform"  # prior distribution used to determine absolute dating of phases
-# 							possible values are: "uniform" / "trapezoid" / "sigmoid"
-TRANSITION_INTERVAL = 50  # length of transition interval between phases in calendar years
+DISTRIBUTION = "trapezoid"  # prior distribution used to determine absolute dating of phases
+# 							possible values are: "uniform" / "trapezoid"
 
 FDEM = "data/raster/dem.tif"  # path in string format to file containing the DEM raster in GeoTIFF format
 FSLOPE = "data/raster/slope.tif"  # path in string format to file containing the Slope raster in GeoTIFF format
 FWATER = "data/raster/water.tif"  # path in string format to file containing the Water raster in GeoTIFF format
-
 FCOORDS = "data/coords_examined.csv"  # path in string format to a CSV file containing all examined coordinates
-
-# FEVIDENCE = "data/evidence_br_ha.csv" # path in string format to a CSV file containing the evidence (input data)
-FEVIDENCE = "data/evidence.csv"  # path in string format to a CSV file containing the evidence (input data)
+FEVIDENCE = "data/evidence_example.csv"  # path in string format to a CSV file containing the evidence (input data)
 
 if __name__ == '__main__':
 
@@ -51,8 +47,7 @@ if __name__ == '__main__':
 
 	data = load_input_data(FEVIDENCE)  # [[BP_from, BP_to, X, Y], ...]
 
-	coords, intervals, phases_chrono, intervals_coords, neighbours, exclude, production_areas, extent, raster_shape = get_descriptive_system(
-		data, INTERVAL_THRESH, EU_SIDE, PRODUCTION_AREA, WATER_LIMIT, FDEM, FSLOPE, FWATER)
+	coords, intervals, phases_chrono, intervals_coords, neighbours, exclude, production_areas, extent, raster_shape = get_descriptive_system(data, INTERVAL_THRESH, EU_SIDE, PRODUCTION_AREA, WATER_LIMIT, FDEM, FSLOPE, FWATER)
 	# coords = [[X, Y], ...]; unique coordinates of evidence units
 	# intervals = [[BP_from, BP_to], ...]; unique dating intervals
 	# phases_chrono[pi] = [[i, ...], ...]; chronological phases (groups of intervals which can be contemporary)
@@ -66,7 +61,7 @@ if __name__ == '__main__':
 	# production_areas[k] = [[i, j], ...]; where k = index in coords; i, j = indices in cost_surface raster
 	# extent = [xmin, xmax, ymin, ymax]; where xmin, xmax, ymin, ymax are spatial limits of the examined area
 	# raster_shape = (rows, columns)
-
+	
 	##### FIND POSSIBLE SOLUTIONS FOR ASSIGNING EVIDENCE UNITS TO CHRONO-SPATIAL PHASES WHILE MODELING PRODUCTION AREAS AROUND HABITATION AREAS
 
 	print()
@@ -99,14 +94,14 @@ if __name__ == '__main__':
 	print()
 	print("MCMC modelling absolute chronology of phases")
 	print("\tphases:", len(phases_spatial))
+	print("\tprior distribution:", DISTRIBUTION)
 	print()
 	
-	'''
 	phase_intervals, pis = get_phase_intervals(intervals, phases_spatial)
 	# phase_intervals[qi] = [BP_from, BP_to]; where qi = index in pis
 	# pis = [pi, ...]; where pi = index of phase; ordered by earliest interval first
 
-	chains = get_chains(phase_intervals, DISTRIBUTION, TRANSITION_INTERVAL)
+	chains = get_chains(phase_intervals, DISTRIBUTION)
 
 	# chains = [chain, ...]; where chain[qi] = t; where qi = index in pis and t = time in calendar years BP
 
@@ -122,19 +117,18 @@ if __name__ == '__main__':
 	pis = pis.tolist()
 	phase_intervals = np.array([phase_intervals[pis.index(qi)].tolist() for qi in range(len(pis))], dtype=int)
 	phase_datings = np.array([phase_datings[pis.index(qi)].tolist() for qi in range(len(pis))], dtype=int)
-	''' # DEBUG
 	
 	# DEBUG start
 	import json  # DEBUG
 
-#	with open("tmp_tdist_%s.json" % (DISTRIBUTION), "w") as f:
-#		json.dump([phase_intervals.tolist(), phase_datings.tolist(), ts.tolist(), time_phase_dist.tolist()], f)
-	with open("tmp_tdist_%s.json" % (DISTRIBUTION), "r") as f:
-		phase_intervals, phase_datings, ts, time_phase_dist = json.load(f)
-		phase_intervals = np.array(phase_intervals, dtype = np.uint16)
-		phase_datings = np.array(phase_datings)
-		ts = np.array(ts, dtype = int)
-		time_phase_dist = np.array(time_phase_dist, dtype = int)
+	with open("tmp_tdist_%s.json" % (DISTRIBUTION), "w") as f:
+		json.dump([phase_intervals.tolist(), phase_datings.tolist(), ts.tolist(), time_phase_dist.tolist()], f)
+#	with open("tmp_tdist_%s.json" % (DISTRIBUTION), "r") as f:
+#		phase_intervals, phase_datings, ts, time_phase_dist = json.load(f)
+#		phase_intervals = np.array(phase_intervals, dtype = np.uint16)
+#		phase_datings = np.array(phase_datings)
+#		ts = np.array(ts, dtype = int)
+#		time_phase_dist = np.array(time_phase_dist, dtype = int)
 	# DEBUG end
 
 	# phase_intervals[pi] = [BP_from, BP_to]; where pi = index in pis
@@ -181,7 +175,7 @@ if __name__ == '__main__':
 	# hsi_mean_upper[ti] = upper boundary of 90% interval
 	# hsi_mean_map[i] = mean HSI; where i = index in coords
 
-	##### CALCULATE SPATIAL OVERLAPPING OF HABITATION AREA UNITS FROM SUBSEQUENT PHASES
+	##### ANALYSE CONTINUITY OF HABITATION BY CALCULATING SPATIAL OVERLAPPING OF HABITATION AREA UNITS FROM SUBSEQUENT PHASES
 
 	print()
 	print("Calculating spatial overlapping of habitation area units")
@@ -231,7 +225,6 @@ if __name__ == '__main__':
 	pyplot.xticks(ts_evid[::500], ts_evid[::500] - 1950)
 	ax.set_xlabel("Time (years BC)")
 	ax.set_ylabel("Summed probability")
-	ax.legend()
 	pyplot.xlim(tmax, tmin)
 
 	ax = pyplot.subplot(212)

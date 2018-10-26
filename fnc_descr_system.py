@@ -13,7 +13,7 @@ def get_descriptive_system(data, interval_thresh, eu_side, production_area, wate
 	#	interval_thresh = threshold for a time interval lenght under which this interval is considered contemporary with another if it overlaps with it by any length
 	#	eu_side = evidence unit square side (m)
 	#	production_area = size of production area (ha)
-	#	water_limit = limit of water flow which is easily passable
+	#	water_limit = limit of water flow which is easily passable (= amount of hectares from which the water has accumulated in the flow accumulation model)
 	#	path_dem = path in string format to file containing the DEM raster in GeoTIFF format
 	#	path_slope = path in string format to file containing the Slope raster in GeoTIFF format
 	#	path_water = path in string format to file containing the Water raster in GeoTIFF format

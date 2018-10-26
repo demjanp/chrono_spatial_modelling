@@ -1,8 +1,5 @@
 ## Example code for the paper "Modelling prehistoric settlement activities based on surface and subsurface surveys" by D. Dreslerová and P. Demján
 
-## Citation:
-TODO
-
 ## Author of the code:
 Peter Demján (peter.demjan@gmail.com)
 
@@ -29,14 +26,25 @@ To execute, run [process.py](process.py)
 
 Processing parameters are set by editing the values at the beginning of the [process.py](process.py) file.
 
-It is possible to set different prior distributions for the chronometric modelling (step 3): uniform, trapezoid and sigmoid. This simulates different transitions between archaeological cultures, which were used to obtain the absolute dating intervals of the evidence units. The duration of the transition interval can also be set. The non-uniform distributions are modelled according to: Karlsberg A.J. 2006. Flexible Bayesian methods for archaeological dating (PhD thesis). Sheffield: University of Sheffield.
+It is possible to set different prior distributions for the chronometric modelling (step 3): uniform and trapezoid. This simulates different transitions between archaeological cultures, which were used to obtain the absolute dating intervals of the evidence units. The trapezoid distribution is modelled according to: Karlsberg A.J. 2006. Flexible Bayesian methods for archaeological dating (PhD thesis). Sheffield: University of Sheffield.
 
 The code to compute the Pair Correlation Function is created according to an [example](https://github.com/cfinch/Shocksolution_Examples/tree/master/PairCorrelation) by Craig Finch.
 
 Input data are loaded from the directory [data](data) and have the form of CSV files and [GeoTIFF](https://www.gdal.org/frmt_gtiff.html) rasters.
+* [evidence.csv](data\evidence.csv) - dating<sup>1</sup> and coordinates<sup>2</sup> of all units of settlement evidence from field walking and excavations used in the original study
+* [evidence_example.csv](data\evidence_example.csv) - dating<sup>1</sup> and coordinates<sup>2</sup> of selected units of settlement evidence used in this example code
+* [coords_examined.csv](data\coords_examined.csv) - coordinates<sup>2</sup> of all examined units, regardles of presence or dating of settlement evidence (used for randomization)
+* [dem.tif](data\raster\dem.tif) - Digital Elevation Model of the section of ladscape used in this example code
+* [slope.tif](data\raster\slope.tif) - slope values of the aforementioned section, calculated in [ArcGIS](http://desktop.arcgis.com/en/arcmap/10.3/tools/spatial-analyst-toolbox/slope.htm)
+* [water.tif](data\raster\water.tif) - flow accumulation of the aforementioned section, calculated in [ArcGIS](http://pro.arcgis.com/en/pro-app/tool-reference/spatial-analyst/flow-accumulation.htm)
 
-Results are plotted in from of graphs and maps in the directory [output](output).
-Pre-computed example results are available in the directory [example_output](example_output).
+<sup>1</sup> all datings are in calendar years BP <br>
+<sup>2</sup> all coordinates are in the Pulkovo 1942 / Gauss-Krüger zone 13 coordinate system and projection (EPSG: 28403)
+
+Results are plotted in from of graphs and maps in the directory 'output'.
+Pre-computed example results calculated with different prior distributions are available in the directory 'example_output':
+* [uniform](example_output\uniform)
+* [trapezoid](example_output\trapezoid)
 
 ## Requirements
 
