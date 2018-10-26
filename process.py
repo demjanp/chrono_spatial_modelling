@@ -23,8 +23,7 @@ ADD_PHASE_AFTER = 200  # number of attempts after which to add a phase if no sol
 TIME_STEP = 100  # time step in calendar years to use for binning temporal distributions (used in visualising settlement continuity)
 INTERVAL_THRESH = 200  # threshold for a time interval lenght under which this interval is considered contemporary with another if it overlaps with it by any length (reflects the current state of knowledge, where some short-lived cultural periods are considered contemporary with longer periods, even though their traditionally assigned absolute datings do not fully overlap)
 RANDOMIZE_N = 1000  # number of randomized solutions to generate when calculating the spatial correlation of habitation areas (PCF)
-
-DISTRIBUTION = "trapezoid"  # prior distribution used to determine absolute dating of phases
+DISTRIBUTION = "uniform"  # prior distribution used to determine absolute dating of phases
 # 							possible values are: "uniform" / "trapezoid"
 
 FDEM = "data/raster/dem.tif"  # path in string format to file containing the DEM raster in GeoTIFF format
