@@ -34,35 +34,7 @@ def get_chains(phase_intervals, distribution):
 	#	distribution = "uniform" / "trapezoid"
 	# returns a list: chains = [chain, ...]; where chain[qi] = t; where qi = index in pis and t = time in calendar years BP
 
-	def get_dist_lookup(phase_intervals):
-		# generate lookup table for trapezoid distribution (see Karlsberg 2006) to speed up generating dates
-
-		dist_lookup_trapezoid = {}
-		for t2, t1 in phase_intervals:
-			d1 = np.random.randint(1, t2 - t1)
-			d2 = np.random.randint(1, t2 - t1)
-			a = t1 - d1 / 2
-			b = t1 + d1 / 2
-			c = t2 - d2 / 2
-			d = t2 + d2 / 2
-			h = 2 / (d + c - a - b)
-			ts = np.arange(a, d)
-			ps = np.zeros(ts.shape[0])
-
-			mask = ((ts >= a) & (ts < b))
-			ps[mask] = h * ((ts[mask] - a) / (b - a))
-
-			mask = ((ts >= b) & (ts < c))
-			ps[mask] = h
-
-			mask = ((ts >= c) & (ts <= d))
-			ps[mask] = h * ((d - ts[mask]) / (d - c))
-
-			key = "%d_%d" % (t2, t1)
-			dist_lookup_trapezoid[key] = [ts, ps]
-		return dist_lookup_trapezoid
-
-	def get_chain(phase_intervals, func_pick_date, dist_lookup):
+	def get_chain(phase_intervals, func_pick_date):
 
 		def get_phase_limits(phase_intervals):
 			# each phase must have the BP_from boundary higher and the BP_to boundary lower than the previous phase
@@ -90,7 +62,7 @@ def get_chains(phase_intervals, distribution):
 		while chain[0] == -1:
 			np.random.shuffle(phases)
 			for pi0 in phases:
-				t0 = func_pick_date(phase_intervals[pi0], phase_limits[pi0], dist_lookup)
+				t0 = func_pick_date(phase_intervals[pi0], phase_limits[pi0])
 				if t0 is None:
 					chain[:] = -1
 					phase_limits = get_phase_limits(phase_intervals)
@@ -100,7 +72,7 @@ def get_chains(phase_intervals, distribution):
 				phase_limits = get_phase_limits(phase_limits)
 		return chain.astype(np.uint16)
 
-	def pick_date_uniform(interval, limits, lookup):
+	def pick_date_uniform(interval, limits):
 		# pick a date from interval based on a uniform distribution and constrained by limits
 		# interval, limits = [BP_from, BP_to]
 
@@ -112,7 +84,7 @@ def get_chains(phase_intervals, distribution):
 
 		return np.random.randint(tmin, tmax)
 
-	def pick_date_nonuniform(interval, limits, lookup):
+	def pick_date_trapezoid(interval, limits):
 		# pick a date from interval based on a non-uniform distribution and constrained by limits
 
 		tmin, tmax = max(interval[1], limits[1]), min(interval[0], limits[0])
@@ -121,27 +93,42 @@ def get_chains(phase_intervals, distribution):
 		if tmin == tmax:
 			return tmin
 
-		ts, ps = lookup["%d_%d" % tuple(interval.tolist())]
+		# create a trapezoid prior probability distribution
+		t1, t2 = interval[1], interval[0]
+		d1 = np.random.randint(1, t2 - t1)
+		d2 = np.random.randint(1, t2 - t1)
+		a = t1 - d1 / 2
+		b = t1 + d1 / 2
+		c = t2 - d2 / 2
+		d = t2 + d2 / 2
+		h = 2 / (d + c - a - b)
+		ts = np.arange(a, d)
+		ps = np.zeros(ts.shape[0])
+		mask = ((ts >= a) & (ts < b))
+		ps[mask] = h * ((ts[mask] - a) / (b - a))
+		ps[((ts >= b) & (ts < c))] = h
+		mask = ((ts >= c) & (ts <= d))
+		ps[mask] = h * ((d - ts[mask]) / (d - c))
 
+		# crop the prior probability distribution to specified limits
 		mask = ((ts >= tmin) & (ts <= tmax))
 		ts = ts[mask]
 		ps = ps[mask]
 		ps /= ps.sum()
 
+		# randomly pick from ts based on the prior probability distribution
 		return np.random.choice(ts, 1, p=ps)[0]
 
-	dist_lookup_trapezoid = get_dist_lookup(phase_intervals)
-
 	pick_date_fnc = {
-		"uniform": [pick_date_uniform, None],
-		"trapezoid": [pick_date_nonuniform, dist_lookup_trapezoid],
+		"uniform": pick_date_uniform,
+		"trapezoid": pick_date_trapezoid,
 	}
 
-	chains = np.array([get_chain(phase_intervals, *pick_date_fnc[distribution])], dtype=np.uint16)
+	chains = np.array([get_chain(phase_intervals, pick_date_fnc[distribution])], dtype=np.uint16)
 	chains_mean0 = chains.mean(axis=0)
 	counter = 0
 	while counter < 1000:
-		chains = np.vstack((chains, get_chain(phase_intervals, *pick_date_fnc[distribution])))
+		chains = np.vstack((chains, get_chain(phase_intervals, pick_date_fnc[distribution])))
 		counter += 1
 		chains_mean = chains.mean(axis=0)
 		diff = (np.abs(chains_mean0 - chains_mean) / chains_mean0).max()
