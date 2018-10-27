@@ -202,6 +202,7 @@ def calculate_PCF_randomized(solutions, path_coords_examined, extent, eu_side, r
 	coords_n = dict([(pi, int(round(sum([solutions[si, :, pi].sum() for si in range(solutions_n)]) / solutions_n))) for pi in range(phases_n)])
 	# coords_n = {pi: n, ...}
 	for pi in range(phases_n):
+		print("\rrandomizing phase %d/%d      " % (pi + 1, phases_n), end = "")
 		res = {}  # {radius: g_r, ...}
 		for ri in range(randomize_n):
 			pcf_rnd = calculate_PCF(

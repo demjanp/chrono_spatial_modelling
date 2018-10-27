@@ -22,7 +22,7 @@ WATER_LIMIT = 10  # limit of water flow which is easily passable (= amount of he
 ADD_PHASE_AFTER = 200  # number of attempts after which to add a phase if no solution has been found
 TIME_STEP = 100  # time step in calendar years to use for binning temporal distributions (used in visualising settlement continuity)
 INTERVAL_THRESH = 200  # threshold for a time interval lenght under which this interval is considered contemporary with another if it overlaps with it by any length (reflects the current state of knowledge, where some short-lived cultural periods are considered contemporary with longer periods, even though their traditionally assigned absolute datings do not fully overlap)
-RANDOMIZE_N = 1000  # number of randomized solutions to generate when calculating the spatial correlation of habitation areas (PCF)
+RANDOMIZE_N = 10000  # number of randomized solutions to generate when calculating the spatial correlation of habitation areas (PCF)
 DISTRIBUTION = "uniform"  # prior distribution used to determine absolute dating of phases
 # 							possible values are: "uniform" / "trapezoid"
 
@@ -70,6 +70,7 @@ if __name__ == '__main__':
 	print()
 
 	solutions, phases_spatial = find_solutions(intervals, phases_chrono, intervals_coords, neighbours, exclude, ADD_PHASE_AFTER, PROC_N, pool)
+	print()
 
 	phases_n = len(phases_spatial)
 
@@ -79,7 +80,7 @@ if __name__ == '__main__':
 
 	##### ASSIGN ABSOLUTE DATINGS TO PHASES
 
-	print()
+
 	print()
 	print("MCMC modelling absolute chronology of phases")
 	print("\tphases:", len(phases_spatial))
@@ -91,6 +92,7 @@ if __name__ == '__main__':
 	# pis = [pi, ...]; where pi = index of phase; ordered by earliest interval first
 
 	chains = get_chains(phase_intervals, DISTRIBUTION)
+	print()
 
 	# chains = [chain, ...]; where chain[qi] = t; where qi = index in pis and t = time in calendar years BP
 
@@ -112,7 +114,6 @@ if __name__ == '__main__':
 
 	##### CALCULATE AMOUNTS OF HABITATION AREAS PER PHASE AND YEAR
 
-	print()
 	print()
 	print("Calculating amounts of habitation areas per phase and year")
 
@@ -168,6 +169,7 @@ if __name__ == '__main__':
 
 	pcf = calculate_PCF_solutions(solutions, coords, EU_SIDE)
 	pcf_randomized = calculate_PCF_randomized(solutions, FCOORDS, extent, EU_SIDE, RANDOMIZE_N)
+	print()
 
 	# pcf[pi] = [r, g]; where pi = index of phase, r = radius of the annulus used to compute g(r), g = average correlation function g(r)
 	# pcf_randomized[pi] = [[radii, g_lower, g_upper], ...]; where pi = index of phase; radii = [r, ...] and g_lower, g_upper = [g, ...]; in order of radii
@@ -181,12 +183,12 @@ if __name__ == '__main__':
 	print("Generating raster probability maps of modelled production areas")
 
 	pa_grids = generate_production_area_maps(solutions, raster_shape, neighbours, production_areas)
+	print()
 
 	# pa_grids[pi, i, j] = p; where pi = index of phase; i, j = indices in 2D raster with cell size = EU_SIDE; p = probability of presence of production area
 
 	##### PLOT AMOUNT OF HABITATION AREAS VS. AMOUNT OF EVIDENCE PER YEAR
 
-	print()
 	print()
 	print("Plotting amount of habitation areas vs. amount of evidence per year")
 
@@ -347,10 +349,10 @@ if __name__ == '__main__':
 		pyplot.close()
 
 		ph += 1
+	print()
 
 	##### PLOT RASTER MAPS OF PRODUCTION AREAS FOR EVERY PHASE
 
-	print()
 	print()
 	print("Plotting raster maps of production areas for every phase")
 
@@ -390,3 +392,4 @@ if __name__ == '__main__':
 		pyplot.close()
 
 		ph += 1
+	print()
