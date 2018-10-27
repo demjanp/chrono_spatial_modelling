@@ -273,7 +273,7 @@ if __name__ == '__main__':
 
 	fig = pyplot.figure(figsize=(10, 8))
 	pyplot.title("Spatial continuity of habitation areas")
-	pyplot.imshow(overlapping, interpolation="nearest", cmap="jet")
+	pyplot.imshow(overlapping, interpolation="nearest", cmap="plasma")
 	cbar = pyplot.colorbar()
 	pyplot.xticks(np.arange(t_bins.shape[0])[::2], t_labels[::2], rotation=90)
 	pyplot.yticks(np.arange(t_bins.shape[0])[::2], t_labels[::2])
