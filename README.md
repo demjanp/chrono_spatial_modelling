@@ -38,8 +38,8 @@ Input data are loaded from the directory [data](data) and have the form of CSV f
 * [slope.tif](data/raster/slope.tif) - slope values of the aforementioned section, calculated in [ArcGIS](http://desktop.arcgis.com/en/arcmap/10.3/tools/spatial-analyst-toolbox/slope.htm)
 * [water.tif](data/raster/water.tif) - flow accumulation of the aforementioned section, calculated in [ArcGIS](http://pro.arcgis.com/en/pro-app/tool-reference/spatial-analyst/flow-accumulation.htm)
 
-<sup>1</sup> all datings are in calendar years BP <br>
-<sup>2</sup> all coordinates are in the Pulkovo 1942 / Gauss-Krüger zone 13 coordinate system and projection (EPSG: 28403)
+<sup>1</sup> All datings are in calendar years BP and based on typology of the finds. <br>
+<sup>2</sup> All coordinates are in the Pulkovo 1942 / Gauss-Krüger zone 13 coordinate system and projection (EPSG: 28403). Precision of localisation is under ±50 m. 
 
 Results are plotted in from of graphs and maps in the directory 'output'.
 Pre-computed example results calculated with different prior distributions are available in the directory 'example_output':
