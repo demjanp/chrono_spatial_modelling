@@ -43,8 +43,8 @@ Input data are loaded from the directory [data](data) and have the form of CSV f
 
 Results are plotted in from of graphs and maps in the directory 'output'.
 Pre-computed example results calculated with different prior distributions are available in the directory 'example_output':
-* [uniform](example_output/uniform)
-* [trapezoid](example_output/trapezoid)
+* [uniform prior](example_output/uniform)
+* [trapezoid prior](example_output/trapezoid)
 
 ## Requirements
 
