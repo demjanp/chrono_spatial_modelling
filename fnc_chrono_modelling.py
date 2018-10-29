@@ -26,7 +26,7 @@ def get_chains(phase_intervals, distribution):
 	# generate Markov Chains for chronometric modelling
 	"""
 		Assign absolute dates to the modelled chrono-spatial phases under the assumption of a phase-sequence model, as described by 
-		Bronk Ramsey, C. (2009). Bayesian analysis of radiocarbon dates. Radiocarbon, 51(1): 337-360.
+		Bronk Ramsey, C. (2009) Bayesian analysis of radiocarbon dates. Radiocarbon, 51(1): 337-360.
 		The original likelihoods for each phase are the dating intervals represented as uniform or trapezoid probability distributions.
 	"""
 
@@ -85,7 +85,10 @@ def get_chains(phase_intervals, distribution):
 		return np.random.randint(tmin, tmax)
 
 	def pick_date_trapezoid(interval, limits):
-		# pick a date from interval based on a non-uniform distribution and constrained by limits
+		# pick a date from interval based on a trapezoid distribution and constrained by limits
+		"""
+			Implemented based on Karlsberg A. J. (2006) Flexible Bayesian methods for archaeological dating (PhD thesis). Sheffield: University of Sheffield.
+		"""
 
 		tmin, tmax = max(interval[1], limits[1]), min(interval[0], limits[0])
 		if tmin > tmax:
