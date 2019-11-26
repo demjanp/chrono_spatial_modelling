@@ -20,6 +20,10 @@ The processing includes the following steps:
 9. Generate raster probability maps of modelled production areas for every chrono-spatial phase
 10. Plot the results
 
+For a more detailed description of the method see:
+
+Dreslerová, D. & Demján, P. Modelling prehistoric settlement activities based on surface and subsurface surveys. Archaeol Anthropol Sci (2019) 11: 5513. [DOI:10.1007/s12520-019-00884-7](https://doi.org/10.1007/s12520-019-00884-7)
+
 ## How to run
 
 The script is implemented in the [Python](https://www.python.org/) programming language. All libraries used are open-source and available online (for details see Dependencies)
