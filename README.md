@@ -3,6 +3,8 @@
 ## Author of the code:
 Peter Demján (peter.demjan@gmail.com)
 
+Institute of Archaeology of the Czech Academy of Sciences, Prague, v.v.i.
+
 ## Overview
 This is an example implementation of chrono-spatial modelling of settlement activities used in the aforementioned paper. The purpose is to provide a functional overview of the used methods, which is possible to execute and run without access to supercomputing facilities. Sample data is provided, which represents a subset of the actual data used in the original study. As of 2018, the processing should take under 48 hours on a reasonably powerful personal computer. The algorithms are intentionally only weakly optimized to preserve better readability of the code.
 
@@ -56,6 +58,10 @@ The script requires the following libraries to be installed:
 * [NumPy](http://www.numpy.org/): pip install numpy
 * [SciPy](https://www.scipy.org/): pip install scipy
 * [GDAL](http://www.gdal.org/): pip install GDAL
+
+## Acknowledgements:
+
+Development of this software was supported by OP RDE, MEYS, under the project "Ultra-trace isotope research in social and environmental studies using accelerator mass spectrometry", Reg. No. CZ.02.1.01/0.0/0.0/16_019/0000728.
 
 ## License:
 This code is licensed under the [MIT License](http://opensource.org/licenses/MIT) - see the [LICENSE](LICENSE) file for details
